@@ -13,11 +13,8 @@ public class Main {
             System.err.println("argument not correct");
             System.exit(1);
         }
-        String baseDir = args[0];
-        String format = args[1];
-        String envBaseDir = System.getenv("");
-        String envOutFormat = System.getenv("");
-        // argsで指定されたディレクトリを再帰的に走査してjavaファイルを探す
+        String baseDir = getProjectDirName();
+        String format = getFormat();
         try {
             Files.walk(Paths.get(baseDir))
                     .filter(Files::isRegularFile)
@@ -37,5 +34,23 @@ public class Main {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    private static String getProjectDirName() {
+        String baseDir = System.getenv("BOUFFIER_JAVA_BASE_DIR");
+        if (baseDir.length() == 0) {
+            baseDir = "/bouffier-java";
+        }
+        // TODO: validate directory exists
+        return baseDir;
+    }
+
+    private static String getFormat() {
+        String format = System.getenv("BOUFFIER_JAVA_FORMAT");
+        if (format.length() == 0) {
+            format = "yaml";
+        }
+        // TODO: validate format
+        return format;
     }
 }
