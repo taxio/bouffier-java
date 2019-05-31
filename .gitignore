@@ -27,7 +27,7 @@ Thumbs.db
 target
 
 # Build
-out
+/out
 build
 bin
 
@@ -38,3 +38,4 @@ bin
 
 .envrc
 samples/
+!samples/**/.keep
