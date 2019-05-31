@@ -2,27 +2,34 @@ package main;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.printer.XmlPrinter;
+import com.github.javaparser.printer.YamlPrinter;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length != 2) {
-            System.err.println("argument not correct");
-            System.exit(1);
-        }
-        String baseDir = getProjectDirName();
+        Path projectPath = getProjectPath();
+        Path sourcePath = projectPath.resolve("source");
+        Path outPath = projectPath.resolve("out");
         String format = getFormat();
+        validateFormat(format);
+
         try {
-            Files.walk(Paths.get(baseDir))
+            Files.walk(sourcePath)
                     .filter(Files::isRegularFile)
                     .filter(p -> p.toString().toLowerCase().endsWith(".java"))
                     .forEach(src -> {
+                        System.out.println("convert: " + src.toString());
+                        Path outFilePath = outPath.resolve(sourcePath.relativize(src));
                         try {
                             CompilationUnit cu = StaticJavaParser.parse(src);
-                            cu.accept(new MyVisitor(format), "");
+                            writeAST(format, outFilePath, cu);
                         } catch (IOException e) {
                             e.printStackTrace();
                         } catch (IllegalArgumentException e) {
@@ -36,21 +43,49 @@ public class Main {
         }
     }
 
-    private static String getProjectDirName() {
-        String baseDir = System.getenv("BOUFFIER_JAVA_BASE_DIR");
-        if (baseDir.length() == 0) {
-            baseDir = "/bouffier-java";
+    private static Path getProjectPath() {
+        String projectPath = System.getenv("BOUFFIER_JAVA_PROJECT_PATH");
+        if (projectPath == null) {
+            projectPath = "/bouffier-java";
         }
-        // TODO: validate directory exists
-        return baseDir;
+        Path p = Paths.get(projectPath);
+        return p;
     }
 
     private static String getFormat() {
         String format = System.getenv("BOUFFIER_JAVA_FORMAT");
-        if (format.length() == 0) {
+        if (format == null) {
             format = "yaml";
         }
-        // TODO: validate format
         return format;
+    }
+
+    private static void validateFormat(String format) {
+        if (!format.equals("yaml") && !format.equals("xml")) {
+            throw new IllegalArgumentException("output format is not correct");
+        }
+    }
+
+    private static void writeAST(String format, Path outFilePath, CompilationUnit unit) {
+        Path filePath = Paths.get(outFilePath.toString() + "." + format);
+        try {
+            File file = filePath.toFile();
+            File parentFile = file.getParentFile();
+            if (parentFile != null) {
+                parentFile.mkdirs();
+            }
+            FileWriter writer = new FileWriter(file);
+            if (format.equals("yaml")) {
+                YamlPrinter printer = new YamlPrinter(true);
+                writer.write(printer.output(unit));
+            } else if (format.equals("xml")) {
+                XmlPrinter printer = new XmlPrinter(true);
+                writer.write(printer.output(unit));
+            }
+            writer.close();
+            System.out.println("write to: " + filePath.toString());
+        } catch (IOException e) {
+            System.err.println(e);
+        }
     }
 }
