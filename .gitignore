@@ -37,3 +37,4 @@ bin
 *.bak
 
 .envrc
+samples/
