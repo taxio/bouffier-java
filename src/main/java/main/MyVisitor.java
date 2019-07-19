@@ -16,6 +16,12 @@ public class MyVisitor extends VoidVisitorAdapter<String> {
     private Path filePath;
     private String writeBuff;
 
+    /**
+     * ASTのトラバーサClassのコンストラクタ
+     *
+     * @param format      出力フォーマット
+     * @param outFileName 出力ファイル名
+     */
     MyVisitor(String format, Path outFileName) {
         this.format = format;
         if (!format.equals("yaml") && !format.equals("xml")) {
@@ -25,6 +31,12 @@ public class MyVisitor extends VoidVisitorAdapter<String> {
         writeBuff = "";
     }
 
+    /**
+     * トラバーサに渡すコールバック
+     *
+     * @param n
+     * @param arg
+     */
     @Override
     public void visit(MethodDeclaration n, String arg) {
         if (this.format.equals("yaml")) {
@@ -36,6 +48,9 @@ public class MyVisitor extends VoidVisitorAdapter<String> {
         }
     }
 
+    /**
+     * ファイルに出力する
+     */
     public void flush() {
         try {
             File file = filePath.toFile();

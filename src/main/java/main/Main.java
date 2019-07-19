@@ -43,6 +43,11 @@ public class Main {
         }
     }
 
+    /**
+     * 環境変数 ( BOUFFIER_JAVA_PROJECT_PATH ) から読み込むJavaプロジェクトが保存されているディレクトリのパスを取得する
+     *
+     * @return プロジェクトディレクトリのPathオブジェクト
+     */
     private static Path getProjectPath() {
         String projectPath = System.getenv("BOUFFIER_JAVA_PROJECT_PATH");
         if (projectPath == null) {
@@ -52,6 +57,11 @@ public class Main {
         return p;
     }
 
+    /**
+     * 環境変数 ( BOUFFIER_JAVA_FORMAT ) からASTの出力フォーマットを取得する
+     *
+     * @return フォーマット名
+     */
     private static String getFormat() {
         String format = System.getenv("BOUFFIER_JAVA_FORMAT");
         if (format == null) {
@@ -60,12 +70,24 @@ public class Main {
         return format;
     }
 
+    /**
+     * フォーマットが想定されたものかどうかチェックする
+     *
+     * @param format フォーマット名
+     */
     private static void validateFormat(String format) {
         if (!format.equals("yaml") && !format.equals("xml")) {
             throw new IllegalArgumentException("output format is not correct");
         }
     }
 
+    /**
+     * AST Unitを指定のフォーマットでファイルに出力する
+     *
+     * @param format
+     * @param outFilePath
+     * @param unit
+     */
     private static void writeAST(String format, Path outFilePath, CompilationUnit unit) {
         Path filePath = Paths.get(outFilePath.toString() + "." + format);
         try {
