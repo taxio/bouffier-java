@@ -29,6 +29,12 @@ You can choose the following format.
 - yaml
 - xml
 
+### `BOUFFIER_JAVA_PARSE_MODE`
+You can choose the following type.
+
+- file
+- method
+
 ### Quick Start
 Clone this repository and put java sources in `/tests/resources/source`.
 
