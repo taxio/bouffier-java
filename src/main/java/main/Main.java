@@ -1,5 +1,7 @@
 package main;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.printer.XmlPrinter;
@@ -41,7 +43,8 @@ public class Main {
         format = getFormat();
         System.out.println("Output Format: " + format.toString());
 
-        ParseByFile();
+//        ParseByFile();
+        ParseByMethod();
     }
 
     /**
@@ -82,9 +85,9 @@ public class Main {
     /**
      * output AST in specified format.
      *
-     * @param format file format (e.g. yaml)
+     * @param format      file format (e.g. yaml)
      * @param outFilePath output file path
-     * @param unit AST unit
+     * @param unit        AST unit
      */
     private static void writeAST(FormatType format, Path outFilePath, CompilationUnit unit) {
         Path filePath = Paths.get(outFilePath.toString() + "." + format);
@@ -147,5 +150,43 @@ public class Main {
 
         System.out.println("\n\nDONE.");
         System.out.printf("parsed %d java files\n", parsed.get());
+    }
+
+    private static void ParseByMethod() {
+        System.out.println("\nSTART TO PARSE\n");
+
+        Path sourcePath = projectPath.resolve("source");
+        Path outPath = projectPath.resolve("out");
+
+        AtomicInteger parsedFiles = new AtomicInteger();
+
+        try {
+            Files.walk(sourcePath)
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.toString().toLowerCase().endsWith(".java"))
+                    .forEach(src -> {
+                        System.out.print("parse: " + src.toString() + " ... ");
+
+                        Path outFilePath = Paths.get(outPath.resolve(sourcePath.relativize(src)).toString() + "." + format.toString());
+                        MethodVisitor visitor = new MethodVisitor(format, outFilePath);
+                        try {
+                            CompilationUnit cu = StaticJavaParser.parse(src);
+                            cu.accept(visitor, null);
+                            visitor.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            System.exit(1);
+                        }
+
+                        System.out.println("done");
+                        parsedFiles.addAndGet(1);
+                    });
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("\n\nDONE.");
+        System.out.printf("parsed %d java files\n", parsedFiles.get());
     }
 }
