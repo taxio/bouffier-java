@@ -1,0 +1,10 @@
+version: '3.5'
+services:
+  parse:
+    image: taxio/bouffier-java:latest
+    container_name: bouffier-java-sample
+    volumes:
+      - ./tests/resource:/bouffier-java-project
+    environment:
+      - BOUFFIER_JAVA_FORMAT=yaml
+      - BOUFFIER_JAVA_PROJECT_PATH=/bouffier-java-project
