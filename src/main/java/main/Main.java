@@ -12,12 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-enum ParseMode {
-    None,
-    File,
-    Method,
-}
-
 enum FormatType {
     YAML,
     XML,
@@ -33,24 +27,13 @@ public class Main {
 
     static FormatType format;
     static Path projectPath;
-    static ParseMode mode;
 
     public static void main(String[] args) {
         System.out.println("Hello bouffier java!");
         projectPath = getProjectPath();
         format = getFormat();
-        mode = getParseMode();
 
-        switch (mode) {
-            case File:
-                ParseByFile();
-                break;
-            case Method:
-                ParseByMethod();
-                break;
-            default:
-                System.out.println("other mode");
-        }
+        ParseByFile();
     }
 
     /**
@@ -86,38 +69,6 @@ public class Main {
         }
 
         throw new IllegalArgumentException("invalid file format specified");
-    }
-
-    /**
-     * フォーマットが想定されたものかどうかチェックする
-     *
-     * @param format フォーマット名
-     */
-    private static void validateFormat(String format) {
-        if (!format.equals("yaml") && !format.equals("xml")) {
-            throw new IllegalArgumentException("output format is not correct");
-        }
-    }
-
-    /**
-     * 環境変数 ( BOUFFIER_JAVA_PARSE_MODE ) 生成するASTの分割方法を取得する
-     *
-     * @return parse mode
-     */
-    private static ParseMode getParseMode() {
-        String mode = System.getenv("BOUFFIER_JAVA_PARSE_MODE");
-        if (mode == null) {
-            return ParseMode.None;
-        }
-
-        switch (mode){
-            case "file":
-                return ParseMode.File;
-            case "method":
-                return ParseMode.Method;
-        }
-
-        return ParseMode.None;
     }
 
     /**
@@ -181,12 +132,5 @@ public class Main {
             e.printStackTrace();
             System.exit(1);
         }
-    }
-
-    /**
-     * ASTをメソッドレベルで分割
-     */
-    private static void ParseByMethod() {
-        return;
     }
 }
