@@ -21,6 +21,12 @@ enum ParseMode {
 enum FormatType {
     YAML,
     XML,
+    ;
+
+    @Override
+    public String toString() {
+        return super.toString().toLowerCase();
+    }
 }
 
 public class Main {
