@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicInteger;
 
 enum FormatType {
     YAML,
@@ -27,11 +28,18 @@ public class Main {
 
     static FormatType format;
     static Path projectPath;
+    static final String version = "v0.0.1";
 
     public static void main(String[] args) {
-        System.out.println("Hello bouffier java!");
+        System.out.println("---------------------------------------------------\n");
+        System.out.println("Bouffier Java " + version);
+        System.out.println("\n---------------------------------------------------\n");
+
         projectPath = getProjectPath();
+        System.out.println("Project Path: " + projectPath.toString());
+
         format = getFormat();
+        System.out.println("Output Format: " + format.toString());
 
         ParseByFile();
     }
@@ -98,7 +106,6 @@ public class Main {
                     break;
             }
             writer.close();
-            System.out.println("write to: " + filePath.toString());
         } catch (IOException e) {
             System.err.println(e);
         }
@@ -108,15 +115,18 @@ public class Main {
      * ASTをファイルレベルで分割
      */
     private static void ParseByFile() {
+        System.out.println("START TO PARSE\n");
         Path sourcePath = projectPath.resolve("source");
         Path outPath = projectPath.resolve("out");
+
+        AtomicInteger parsed = new AtomicInteger();
 
         try {
             Files.walk(sourcePath)
                     .filter(Files::isRegularFile)
                     .filter(p -> p.toString().toLowerCase().endsWith(".java"))
                     .forEach(src -> {
-                        System.out.println("convert: " + src.toString());
+                        System.out.print("parse: " + src.toString() + " ... ");
                         Path outFilePath = outPath.resolve(sourcePath.relativize(src));
                         try {
                             CompilationUnit cu = StaticJavaParser.parse(src);
@@ -127,10 +137,15 @@ public class Main {
                             e.printStackTrace();
                             System.exit(1);
                         }
+                        System.out.println("done");
+                        parsed.addAndGet(1);
                     });
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
+
+        System.out.println("\n\nDONE.");
+        System.out.printf("parsed %d java files\n", parsed.get());
     }
 }
