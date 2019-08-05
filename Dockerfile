@@ -1,7 +1,7 @@
 FROM gradle:5.4.1-jdk8
 
-WORKDIR /project
-COPY --chown=gradle:gradle . /project
-COPY ./tests/resource /bouffier-java
+WORKDIR /bouffier-java
+COPY --chown=gradle:gradle . /bouffier-java
+COPY ./tests/resource /bouffier-java-project
 
 CMD ["gradle", "run"]

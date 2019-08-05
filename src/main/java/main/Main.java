@@ -52,7 +52,7 @@ public class Main {
     private static Path getProjectPath() {
         String projectPath = System.getenv("BOUFFIER_JAVA_PROJECT_PATH");
         if (projectPath == null) {
-            projectPath = "/bouffier-java";
+            projectPath = "/bouffier-java-project";
         }
 
         return Paths.get(projectPath);
@@ -115,7 +115,7 @@ public class Main {
      * ASTをファイルレベルで分割
      */
     private static void ParseByFile() {
-        System.out.println("START TO PARSE\n");
+        System.out.println("\nSTART TO PARSE\n");
         Path sourcePath = projectPath.resolve("source");
         Path outPath = projectPath.resolve("out");
 
