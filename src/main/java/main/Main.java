@@ -15,6 +15,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicInteger;
 
+enum ParseMode {
+    FILE,
+    METHOD,
+    ;
+}
+
 enum FormatType {
     YAML,
     XML,
@@ -30,6 +36,7 @@ public class Main {
 
     static FormatType format;
     static Path projectPath;
+    static ParseMode mode;
     static final String version = "v0.1.0";
 
     public static void main(String[] args) {
@@ -43,8 +50,15 @@ public class Main {
         format = getFormat();
         System.out.println("Output Format: " + format.toString());
 
-//        ParseByFile();
-        ParseByMethod();
+        mode = getParseMode();
+        System.out.println("Parse Mode: " + mode.toString());
+
+        switch (mode) {
+            case FILE:
+                ParseByFile();
+            case METHOD:
+                ParseByMethod();
+        }
     }
 
     /**
@@ -80,6 +94,24 @@ public class Main {
         }
 
         throw new IllegalArgumentException("invalid file format specified");
+    }
+
+    /**
+     * get the parse mode from the environment variable ( BOUFFIER_JAVA_PARSE_MODE )
+     * default is FILE MODE
+     *
+     * @return ParseMode
+     */
+    private static ParseMode getParseMode() {
+        String mode = System.getenv("BOUFFIER_JAVA_PARSE_MODE");
+        switch (mode) {
+            case "file":
+                return ParseMode.FILE;
+            case "method":
+                return ParseMode.METHOD;
+        }
+
+        return ParseMode.FILE;
     }
 
     /**
