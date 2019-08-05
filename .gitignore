@@ -37,5 +37,5 @@ bin
 *.bak
 
 .envrc
-samples/
-!samples/**/.keep
+tests/resource/
+!tests/resource/**/.keep
