@@ -56,8 +56,10 @@ public class Main {
         switch (mode) {
             case FILE:
                 ParseByFile();
+                break;
             case METHOD:
                 ParseByMethod();
+                break;
         }
     }
 
