@@ -35,7 +35,7 @@ public class Main {
     static FormatType format;
     static Path projectPath;
     static ParseMode mode;
-    static final String version = "v0.1.0";
+    static final String version = "v0.2.0";
 
     public static void main(String[] args) {
         System.out.println("---------------------------------------------------\n");
