@@ -13,6 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicInteger;
 
+enum ParseMode {
+    FILE,
+    METHOD,
+    ;
+}
+
 enum FormatType {
     YAML,
     XML,
@@ -28,6 +34,7 @@ public class Main {
 
     static FormatType format;
     static Path projectPath;
+    static ParseMode mode;
     static final String version = "v0.1.0";
 
     public static void main(String[] args) {
@@ -41,13 +48,23 @@ public class Main {
         format = getFormat();
         System.out.println("Output Format: " + format.toString());
 
-        ParseByFile();
+        mode = getParseMode();
+        System.out.println("Parse Mode: " + mode.toString());
+
+        switch (mode) {
+            case FILE:
+                ParseByFile();
+                break;
+            case METHOD:
+                ParseByMethod();
+                break;
+        }
     }
 
     /**
-     * 環境変数 ( BOUFFIER_JAVA_PROJECT_PATH ) から読み込むJavaプロジェクトが保存されているディレクトリのパスを取得する
+     * get the directory path where the Java project is stored from the environment variable ( BOUFFIER_JAVA_PROJECT_PATH )
      *
-     * @return プロジェクトディレクトリのPathオブジェクト
+     * @return the Path of Java project
      */
     private static Path getProjectPath() {
         String projectPath = System.getenv("BOUFFIER_JAVA_PROJECT_PATH");
@@ -59,9 +76,9 @@ public class Main {
     }
 
     /**
-     * 環境変数 ( BOUFFIER_JAVA_FORMAT ) からASTの出力フォーマットを取得する
+     * get AST output format from environment variable ( BOUFFIER_JAVA_FORMAT )
      *
-     * @return フォーマット名
+     * @return format type
      */
     private static FormatType getFormat() {
         String format = System.getenv("BOUFFIER_JAVA_FORMAT");
@@ -80,11 +97,29 @@ public class Main {
     }
 
     /**
-     * AST Unitを指定のフォーマットでファイルに出力する
+     * get the parse mode from the environment variable ( BOUFFIER_JAVA_PARSE_MODE )
+     * default is FILE MODE
      *
-     * @param format
-     * @param outFilePath
-     * @param unit
+     * @return ParseMode
+     */
+    private static ParseMode getParseMode() {
+        String mode = System.getenv("BOUFFIER_JAVA_PARSE_MODE");
+        switch (mode) {
+            case "file":
+                return ParseMode.FILE;
+            case "method":
+                return ParseMode.METHOD;
+        }
+
+        return ParseMode.FILE;
+    }
+
+    /**
+     * output AST in specified format.
+     *
+     * @param format      file format (e.g. yaml)
+     * @param outFilePath output file path
+     * @param unit        AST unit
      */
     private static void writeAST(FormatType format, Path outFilePath, CompilationUnit unit) {
         Path filePath = Paths.get(outFilePath.toString() + "." + format);
@@ -112,7 +147,7 @@ public class Main {
     }
 
     /**
-     * ASTをファイルレベルで分割
+     * convert source to AST by file unit.
      */
     private static void ParseByFile() {
         System.out.println("\nSTART TO PARSE\n");
@@ -147,5 +182,43 @@ public class Main {
 
         System.out.println("\n\nDONE.");
         System.out.printf("parsed %d java files\n", parsed.get());
+    }
+
+    private static void ParseByMethod() {
+        System.out.println("\nSTART TO PARSE\n");
+
+        Path sourcePath = projectPath.resolve("source");
+        Path outPath = projectPath.resolve("out");
+
+        AtomicInteger parsedFiles = new AtomicInteger();
+
+        try {
+            Files.walk(sourcePath)
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.toString().toLowerCase().endsWith(".java"))
+                    .forEach(src -> {
+                        System.out.print("parse: " + src.toString() + " ... ");
+
+                        Path outFilePath = Paths.get(outPath.resolve(sourcePath.relativize(src)).toString() + "." + format.toString());
+                        MethodVisitor visitor = new MethodVisitor(format, outFilePath);
+                        try {
+                            CompilationUnit cu = StaticJavaParser.parse(src);
+                            cu.accept(visitor, null);
+                            visitor.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            System.exit(1);
+                        }
+
+                        System.out.println("done");
+                        parsedFiles.addAndGet(1);
+                    });
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("\n\nDONE.");
+        System.out.printf("parsed %d java files\n", parsedFiles.get());
     }
 }
