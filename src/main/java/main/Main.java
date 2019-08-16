@@ -194,6 +194,7 @@ public class Main {
 
         AtomicInteger parsedFiles = new AtomicInteger();
         AtomicInteger parsedMethods = new AtomicInteger();
+        AtomicInteger failedFiles = new AtomicInteger();
 
         try {
             Files.walk(sourcePath)
@@ -208,12 +209,13 @@ public class Main {
                             CompilationUnit cu = StaticJavaParser.parse(src);
                             cu.accept(visitor, null);
                             visitor.flush();
+                            System.out.println("done");
                         } catch (IOException e) {
-                            e.printStackTrace();
-                            System.exit(1);
+                            e.printStackTrace();  // TODO: output to stderr??
+                            failedFiles.addAndGet(1);
+                            System.out.println("failed");
                         }
 
-                        System.out.println("done");
                         parsedFiles.addAndGet(1);
                         parsedMethods.addAndGet(visitor.getNumOfParsedMethods());
                     });
@@ -226,6 +228,7 @@ public class Main {
         System.out.println("------------------------------------------------------------------------");
         System.out.printf("parsed %d java files\n", parsedFiles.get());
         System.out.printf("parsed %d java methods\n", parsedMethods.get());
+        System.out.printf("failed %d java files\n", failedFiles.get());
         System.out.println("------------------------------------------------------------------------");
     }
 }
