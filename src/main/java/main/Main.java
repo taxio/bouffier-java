@@ -181,7 +181,9 @@ public class Main {
         }
 
         System.out.println("\n\nDONE.");
+        System.out.println("------------------------------------------------------------------------");
         System.out.printf("parsed %d java files\n", parsed.get());
+        System.out.println("------------------------------------------------------------------------");
     }
 
     private static void ParseByMethod() {
@@ -191,6 +193,7 @@ public class Main {
         Path outPath = projectPath.resolve("out");
 
         AtomicInteger parsedFiles = new AtomicInteger();
+        AtomicInteger parsedMethods = new AtomicInteger();
 
         try {
             Files.walk(sourcePath)
@@ -212,6 +215,7 @@ public class Main {
 
                         System.out.println("done");
                         parsedFiles.addAndGet(1);
+                        parsedMethods.addAndGet(visitor.getNumOfParsedMethods());
                     });
         } catch (IOException e) {
             e.printStackTrace();
@@ -219,6 +223,9 @@ public class Main {
         }
 
         System.out.println("\n\nDONE.");
+        System.out.println("------------------------------------------------------------------------");
         System.out.printf("parsed %d java files\n", parsedFiles.get());
+        System.out.printf("parsed %d java methods\n", parsedMethods.get());
+        System.out.println("------------------------------------------------------------------------");
     }
 }

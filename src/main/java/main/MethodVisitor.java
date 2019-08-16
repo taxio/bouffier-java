@@ -15,6 +15,7 @@ public class MethodVisitor extends VoidVisitorAdapter<String> {
     private FormatType format;
     private String writeBuff;
     private Path outFilePath;
+    private int numOfParsedMethods;
 
     MethodVisitor(FormatType _format, Path _outFilePath) {
         format = _format;
@@ -24,6 +25,7 @@ public class MethodVisitor extends VoidVisitorAdapter<String> {
 
     @Override
     public void visit(MethodDeclaration n, String arg) {
+        numOfParsedMethods += 1;
         if(format == FormatType.YAML) {
             YamlPrinter printer = new YamlPrinter(true);
             writeBuff += printer.output(n) + "\n";
@@ -46,5 +48,9 @@ public class MethodVisitor extends VoidVisitorAdapter<String> {
         } catch (IOException e) {
             System.err.println(e);
         }
+    }
+
+    public int getNumOfParsedMethods() {
+        return numOfParsedMethods;
     }
 }
