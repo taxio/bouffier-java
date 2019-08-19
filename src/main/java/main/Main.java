@@ -81,6 +81,8 @@ public class Main {
         }
         log.StopTimer();
 
+        log.PrintSummary();
+
         String logJson = gson.toJson(log);
         String logFilename = projectPath.resolve(log.Name + ".json").toString();
         System.out.println("\n" + logJson);
@@ -208,15 +210,10 @@ public class Main {
             log.ErrorMessage = e.getMessage();
             e.printStackTrace();
         }
+        System.out.println("\n\nDONE.");
 
         log.ParsedFiles = parsed.get();
         log.ParseFailedFiles = failed.get();
-
-        System.out.println("\n\nDONE.");
-        System.out.println("------------------------------------------------------------------------");
-        System.out.printf("parsed %d java files\n", parsed.get());
-        System.out.printf("failed %d java files\n", failed.get());
-        System.out.println("------------------------------------------------------------------------");
     }
 
     private static void ParseByMethod() {
@@ -256,16 +253,10 @@ public class Main {
             log.ErrorMessage = e.getMessage();
             e.printStackTrace();
         }
+        System.out.println("\n\nDONE.");
 
         log.ParsedFiles = parsedFiles.get();
         log.ParsedMethods = parsedMethods.get();
         log.ParseFailedFiles = failedFiles.get();
-
-        System.out.println("\n\nDONE.");
-        System.out.println("------------------------------------------------------------------------");
-        System.out.printf("parsed %d java files\n", parsedFiles.get());
-        System.out.printf("parsed %d java methods\n", parsedMethods.get());
-        System.out.printf("failed %d java files\n", failedFiles.get());
-        System.out.println("------------------------------------------------------------------------");
     }
 }

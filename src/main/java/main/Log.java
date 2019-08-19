@@ -69,4 +69,15 @@ public class Log {
     public void StopTimer() {
         DurationMs = Math.toIntExact(System.currentTimeMillis() - st);
     }
+
+    public void PrintSummary() {
+        System.out.println("------------------------------------------------------------------------");
+        System.out.println("[Summary]");
+        System.out.printf("parsed %d java files\n", ParsedFiles);
+        System.out.printf("failed %d java files\n", ParsedMethods);
+        if (ParseFailedFiles != null) {
+            System.out.printf("parsed %d java methods\n", ParseFailedFiles);
+        }
+        System.out.println("------------------------------------------------------------------------");
+    }
 }
