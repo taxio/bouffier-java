@@ -45,6 +45,7 @@ public class Log {
         }
     }
 
+    @Expose
     public ArrayList<Failure> Failures;
 
     public void AppendFailure(String filename, Exception e) {
