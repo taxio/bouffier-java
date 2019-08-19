@@ -4,6 +4,9 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.printer.XmlPrinter;
 import com.github.javaparser.printer.YamlPrinter;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -17,6 +20,11 @@ enum ParseMode {
     FILE,
     METHOD,
     ;
+
+    @Override
+    public String toString() {
+        return super.toString().toLowerCase();
+    }
 }
 
 enum FormatType {
@@ -35,22 +43,34 @@ public class Main {
     static FormatType format;
     static Path projectPath;
     static ParseMode mode;
+    static Log log;
+
     static final String version = "v0.2.1";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
+        log = new Log();
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create();
+
         System.out.println("---------------------------------------------------\n");
         System.out.println("Bouffier Java " + version);
         System.out.println("\n---------------------------------------------------\n");
 
         projectPath = getProjectPath();
         System.out.println("Project Path: " + projectPath.toString());
+        log.ProjectPath = projectPath.toString();
 
         format = getFormat();
         System.out.println("Output Format: " + format.toString());
+        log.OutputFormat = format.toString();
 
         mode = getParseMode();
         System.out.println("Parse Mode: " + mode.toString());
+        log.ParseMode = mode.toString();
 
+        log.StartTimer();
         switch (mode) {
             case FILE:
                 ParseByFile();
@@ -58,6 +78,21 @@ public class Main {
             case METHOD:
                 ParseByMethod();
                 break;
+        }
+        log.StopTimer();
+
+        log.PrintSummary();
+
+        String logJson = gson.toJson(log);
+        String logFilename = projectPath.resolve(log.Name + ".json").toString();
+        System.out.println("\n" + logJson);
+        try {
+            FileWriter logf = new FileWriter(logFilename);
+            logf.write(logJson);
+            logf.close();
+            System.out.println("wrote to " + logFilename);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -121,29 +156,25 @@ public class Main {
      * @param outFilePath output file path
      * @param unit        AST unit
      */
-    private static void writeAST(FormatType format, Path outFilePath, CompilationUnit unit) {
+    private static void writeAST(FormatType format, Path outFilePath, CompilationUnit unit) throws Exception {
         Path filePath = Paths.get(outFilePath.toString() + "." + format);
-        try {
-            File file = filePath.toFile();
-            File parentFile = file.getParentFile();
-            if (parentFile != null) {
-                parentFile.mkdirs();
-            }
-            FileWriter writer = new FileWriter(file);
-            switch (format) {
-                case YAML:
-                    YamlPrinter yamlPrinter = new YamlPrinter(true);
-                    writer.write(yamlPrinter.output(unit));
-                    break;
-                case XML:
-                    XmlPrinter xmlPrinter = new XmlPrinter(true);
-                    writer.write(xmlPrinter.output(unit));
-                    break;
-            }
-            writer.close();
-        } catch (IOException e) {
-            System.err.println(e);
+        File file = filePath.toFile();
+        File parentFile = file.getParentFile();
+        if (parentFile != null) {
+            parentFile.mkdirs();
         }
+        FileWriter writer = new FileWriter(file);
+        switch (format) {
+            case YAML:
+                YamlPrinter yamlPrinter = new YamlPrinter(true);
+                writer.write(yamlPrinter.output(unit));
+                break;
+            case XML:
+                XmlPrinter xmlPrinter = new XmlPrinter(true);
+                writer.write(xmlPrinter.output(unit));
+                break;
+        }
+        writer.close();
     }
 
     /**
@@ -155,6 +186,7 @@ public class Main {
         Path outPath = projectPath.resolve("out");
 
         AtomicInteger parsed = new AtomicInteger();
+        AtomicInteger failed = new AtomicInteger();
 
         try {
             Files.walk(sourcePath)
@@ -166,24 +198,22 @@ public class Main {
                         try {
                             CompilationUnit cu = StaticJavaParser.parse(src);
                             writeAST(format, outFilePath, cu);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (IllegalArgumentException e) {
-                            e.printStackTrace();
-                            System.exit(1);
+                            System.out.println("done");
+                            parsed.addAndGet(1);
+                        } catch (Exception e) {
+                            log.AppendFailure(src.toString(), e);
+                            System.out.println("failed");
+                            failed.addAndGet(1);
                         }
-                        System.out.println("done");
-                        parsed.addAndGet(1);
                     });
         } catch (IOException e) {
+            log.ErrorMessage = e.getMessage();
             e.printStackTrace();
-            System.exit(1);
         }
-
         System.out.println("\n\nDONE.");
-        System.out.println("------------------------------------------------------------------------");
-        System.out.printf("parsed %d java files\n", parsed.get());
-        System.out.println("------------------------------------------------------------------------");
+
+        log.ParsedFiles = parsed.get();
+        log.ParseFailedFiles = failed.get();
     }
 
     private static void ParseByMethod() {
@@ -194,6 +224,7 @@ public class Main {
 
         AtomicInteger parsedFiles = new AtomicInteger();
         AtomicInteger parsedMethods = new AtomicInteger();
+        AtomicInteger failedFiles = new AtomicInteger();
 
         try {
             Files.walk(sourcePath)
@@ -208,24 +239,24 @@ public class Main {
                             CompilationUnit cu = StaticJavaParser.parse(src);
                             cu.accept(visitor, null);
                             visitor.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            System.exit(1);
+                            System.out.println("done");
+                        } catch (Exception e) {
+                            log.AppendFailure(src.toString(), e);
+                            failedFiles.addAndGet(1);
+                            System.out.println("failed");
                         }
 
-                        System.out.println("done");
                         parsedFiles.addAndGet(1);
                         parsedMethods.addAndGet(visitor.getNumOfParsedMethods());
                     });
         } catch (IOException e) {
+            log.ErrorMessage = e.getMessage();
             e.printStackTrace();
-            System.exit(1);
         }
-
         System.out.println("\n\nDONE.");
-        System.out.println("------------------------------------------------------------------------");
-        System.out.printf("parsed %d java files\n", parsedFiles.get());
-        System.out.printf("parsed %d java methods\n", parsedMethods.get());
-        System.out.println("------------------------------------------------------------------------");
+
+        log.ParsedFiles = parsedFiles.get();
+        log.ParsedMethods = parsedMethods.get();
+        log.ParseFailedFiles = failedFiles.get();
     }
 }

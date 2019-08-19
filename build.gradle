@@ -17,4 +17,5 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     implementation 'com.github.javaparser:javaparser-core:3.14.3'
+    implementation 'com.google.code.gson:gson:2.8.5'
 }
