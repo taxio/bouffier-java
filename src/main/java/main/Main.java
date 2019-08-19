@@ -47,9 +47,12 @@ public class Main {
 
     static final String version = "v0.2.1";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         log = new Log();
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create();
 
         System.out.println("---------------------------------------------------\n");
         System.out.println("Bouffier Java " + version);
@@ -67,6 +70,7 @@ public class Main {
         System.out.println("Parse Mode: " + mode.toString());
         log.ParseMode = mode.toString();
 
+        log.StartTimer();
         switch (mode) {
             case FILE:
                 ParseByFile();
@@ -75,6 +79,7 @@ public class Main {
                 ParseByMethod();
                 break;
         }
+        log.StopTimer();
 
         String logJson = gson.toJson(log);
         String logFilename = projectPath.resolve(log.Name + ".json").toString();

@@ -1,20 +1,35 @@
 package main;
 
+import com.google.gson.annotations.Expose;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public class Log {
+    @Expose
     public String Name;
+    @Expose
     public String ParseMode;
+    @Expose
     public String ProjectPath;
+    @Expose
     public String OutputFormat;
 
+    @Expose
     public Integer ParsedFiles;
+    @Expose
     public Integer ParsedMethods;
+    @Expose
     public Integer ParseFailedFiles;
 
+    @Expose
     public String ErrorMessage;
+
+    @Expose
+    public Integer DurationMs;
+    @Expose(serialize = false)
+    private long st;
 
     public Log() {
         Name = genLogName();
@@ -44,5 +59,13 @@ public class Log {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         return "log_" + sdf.format(cal.getTime());
+    }
+
+    public void StartTimer() {
+        st = System.currentTimeMillis();
+    }
+
+    public void StopTimer() {
+        DurationMs = Math.toIntExact(System.currentTimeMillis() - st);
     }
 }
