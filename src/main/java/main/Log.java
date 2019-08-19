@@ -36,7 +36,9 @@ public class Log {
     }
 
     class Failure {
+        @Expose
         public String Filename;
+        @Expose
         public String ErrorMessage;
 
         public Failure(String _filename, String _errMsg) {
