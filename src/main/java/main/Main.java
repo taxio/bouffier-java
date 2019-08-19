@@ -45,7 +45,7 @@ public class Main {
     static ParseMode mode;
     static Log log;
 
-    static final String version = "v0.2.2";
+    static final String version = "v0.2.3";
 
     public static void main(String[] args) throws InterruptedException {
         log = new Log();
@@ -239,14 +239,15 @@ public class Main {
                             CompilationUnit cu = StaticJavaParser.parse(src);
                             cu.accept(visitor, null);
                             visitor.flush();
-                            parsedFiles.addAndGet(1);
-                            parsedMethods.addAndGet(visitor.getNumOfParsedMethods());
                             System.out.println("done");
                         } catch (Exception e) {
                             log.AppendFailure(src.toString(), e);
                             failedFiles.addAndGet(1);
                             System.out.println("failed");
                         }
+
+                        parsedFiles.addAndGet(1);
+                        parsedMethods.addAndGet(visitor.getNumOfParsedMethods());
                     });
         } catch (IOException e) {
             log.ErrorMessage = e.getMessage();
