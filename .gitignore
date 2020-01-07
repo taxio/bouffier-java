@@ -37,5 +37,12 @@ bin
 *.bak
 
 .envrc
-tests/resource/*
-!tests/resource/**/.keep
+
+/tests/resource/*
+!/tests/resource/out/
+/tests/resource/out/*
+!/tests/resource/out/.keep
+!/tests/resource/source/
+/tests/resource/source/*
+!/tests/resource/source/.keep
+!/tests/resource/source/Sample.java
