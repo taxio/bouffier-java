@@ -45,7 +45,7 @@ public class Main {
     static ParseMode mode;
     static Log log;
 
-    static final String version = "v0.2.3";
+    static final String version = "v0.2.4";
 
     public static void main(String[] args) throws InterruptedException {
         log = new Log();
